@@ -1197,6 +1197,71 @@ TEST(Decimal256Test, TestToBytesRoundTrip) {
   }
 }
 
+Decimal256 Decimal256FromInt128(int128_t value) {
+  std::array<uint64_t, 4> array;
+  if (value < 0) {
+    array = {static_cast<uint64_t>(value & 0xFFFFFFFFFFFFFFFFULL),
+             static_cast<uint64_t>(value >> 64), 0xFFFFFFFFFFFFFFFFULL,
+             0xFFFFFFFFFFFFFFFFULL};
+  } else {
+    array = {static_cast<uint64_t>(value & 0xFFFFFFFFFFFFFFFFULL),
+             static_cast<uint64_t>(value >> 64), 0, 0};
+  }
+  return Decimal256(array);
+}
+
+TEST(Decimal256Test, Divide) {
+  ASSERT_EQ(Decimal256(33), Decimal256(100) / Decimal256(3));
+  ASSERT_EQ(Decimal256(66), Decimal256(200) / Decimal256(3));
+  ASSERT_EQ(Decimal256(66), Decimal256(20100) / Decimal256(301));
+  ASSERT_EQ(Decimal256(-66), Decimal256(-20100) / Decimal256(301));
+  ASSERT_EQ(Decimal256(-66), Decimal256(20100) / Decimal256(-301));
+  ASSERT_EQ(Decimal256(66), Decimal256(-20100) / Decimal256(-301));
+  ASSERT_EQ(Decimal256("-5192296858534827628530496329343552"),
+            Decimal256("-269599466671506397946670150910580797473777870509761363"
+                       "24636208709184") /
+                Decimal256("5192296858534827628530496329874417"));
+  ASSERT_EQ(Decimal256("5192296858534827628530496329343552"),
+            Decimal256("-269599466671506397946670150910580797473777870509761363"
+                       "24636208709184") /
+                Decimal256("-5192296858534827628530496329874417"));
+  ASSERT_EQ(Decimal256("5192296858534827628530496329343552"),
+            Decimal256("2695994666715063979466701509105807974737778705097613632"
+                       "4636208709184") /
+                Decimal256("5192296858534827628530496329874417"));
+  ASSERT_EQ(Decimal256("-5192296858534827628530496329343552"),
+            Decimal256("2695994666715063979466701509105807974737778705097613632"
+                       "4636208709184") /
+                Decimal256("-5192296858534827628530496329874417"));
+
+  // Test some random numbers.
+  for (auto x : GetRandomNumbers<Int32Type>(16)) {
+    for (auto y : GetRandomNumbers<Int32Type>(16)) {
+      if (y == 0) {
+        continue;
+      }
+
+      Decimal256 result = Decimal256(x) / Decimal256(y);
+      ASSERT_EQ(Decimal256(static_cast<int64_t>(x) / y), result)
+          << " x: " << x << " y: " << y;
+    }
+  }
+
+  // Test some edge cases
+  for (auto x :
+       std::vector<int128_t>{-INT64_MAX, -INT32_MAX, 0, INT32_MAX, INT64_MAX}) {
+    for (auto y :
+         std::vector<int128_t>{-INT32_MAX, -32, -2, -1, 1, 2, 32, INT32_MAX}) {
+      Decimal256 decimal_x = Decimal256FromInt128(x);
+      Decimal256 decimal_y = Decimal256FromInt128(y);
+      Decimal256 result = decimal_x / decimal_y;
+      EXPECT_EQ(Decimal256FromInt128(x / y), result)
+          << " x: " << decimal_x.ToIntegerString()
+          << " y: " << decimal_y.ToIntegerString();
+    }
+  }
+}
+
 template <typename T>
 class Decimal256Test : public ::testing::Test {
  public:

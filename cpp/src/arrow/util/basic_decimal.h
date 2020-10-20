@@ -220,6 +220,22 @@ class ARROW_EXPORT BasicDecimal256 {
   DecimalStatus Rescale(int32_t original_scale, int32_t new_scale,
                         BasicDecimal256* out) const;
 
+  /// Divide this number by right and return the result.
+  ///
+  /// This operation is not destructive.
+  /// The answer rounds to zero. Signs work like:
+  ///   21 /  5 ->  4,  1
+  ///  -21 /  5 -> -4, -1
+  ///   21 / -5 -> -4,  1
+  ///  -21 / -5 ->  4, -1
+  /// \param[in] divisor the number to divide by
+  /// \param[out] result the quotient
+  /// \param[out] remainder the remainder after the division
+  DecimalStatus Divide(const BasicDecimal256& divisor, BasicDecimal256* result,
+                       BasicDecimal256* remainder) const;
+  /// \brief In-place division.
+  BasicDecimal256& operator/=(const BasicDecimal256& right);
+
  private:
   template <typename T>
   inline static constexpr uint64_t extend(T low_bits) noexcept {
@@ -234,4 +250,7 @@ ARROW_EXPORT bool operator<(const BasicDecimal256& left, const BasicDecimal256& 
 ARROW_EXPORT bool operator<=(const BasicDecimal256& left, const BasicDecimal256& right);
 ARROW_EXPORT bool operator>(const BasicDecimal256& left, const BasicDecimal256& right);
 ARROW_EXPORT bool operator>=(const BasicDecimal256& left, const BasicDecimal256& right);
+
+ARROW_EXPORT BasicDecimal256 operator/(const BasicDecimal256& left,
+                                       const BasicDecimal256& right);
 }  // namespace arrow
