@@ -342,8 +342,7 @@ BasicDecimal128& BasicDecimal128::operator*=(const BasicDecimal128& right) {
 /// \param result_array an array of length N*2 to set with the value
 /// \result the output length of the array
 template <size_t N>
-static int64_t FillInArray(std::array<uint64_t, N>& value_array,
-                           uint32_t* result_array) {
+static int64_t FillInArray(std::array<uint64_t, N>& value_array, uint32_t* result_array) {
   int64_t next_index = 0;
   for (size_t i = 0; i < N; i++) {
     if (value_array[i] == 0) {
@@ -397,8 +396,7 @@ static int64_t FillInArray(const BasicDecimal256& value, uint32_t* array,
     positive_value.Negate();
     was_negative = true;
   }
-  std::array<uint64_t, 4> value_big_endian_array =
-      positive_value.little_endian_array();
+  std::array<uint64_t, 4> value_big_endian_array = positive_value.little_endian_array();
   std::reverse(value_big_endian_array.begin(), value_big_endian_array.end());
   return FillInArray(value_big_endian_array, array);
 }
@@ -442,7 +440,6 @@ static void FixDivisionSigns(DecimalClass* result, DecimalClass* remainder,
     remainder->Negate();
   }
 }
-
 
 /// \brief Build a big endian array of uint64_t from a list of uint32_t.
 template <size_t N>
@@ -491,11 +488,9 @@ static DecimalStatus BuildFromArray(BasicDecimal256* value, uint32_t* array,
 
 /// \brief Do a division where the divisor fits into a single 32 bit value.
 template <class DecimalClass>
-static DecimalStatus SingleDivide(const uint32_t* dividend,
-                                  int64_t dividend_length, uint32_t divisor,
-                                  DecimalClass* remainder,
-                                  bool dividend_was_negative,
-                                  bool divisor_was_negative,
+static DecimalStatus SingleDivide(const uint32_t* dividend, int64_t dividend_length,
+                                  uint32_t divisor, DecimalClass* remainder,
+                                  bool dividend_was_negative, bool divisor_was_negative,
                                   DecimalClass* result) {
   uint64_t r = 0;
   uint32_t result_array[dividend_length];
@@ -511,16 +506,14 @@ static DecimalStatus SingleDivide(const uint32_t* dividend,
   }
 
   *remainder = static_cast<int64_t>(r);
-  FixDivisionSigns(result, remainder, dividend_was_negative,
-                   divisor_was_negative);
+  FixDivisionSigns(result, remainder, dividend_was_negative, divisor_was_negative);
   return DecimalStatus::kSuccess;
 }
 
 /// \brief Do a division where the divisor fits into a single 32 bit value.
 template <class DecimalClass>
 static DecimalStatus DecimalDivide(const DecimalClass& dividend,
-                                   const DecimalClass& divisor,
-                                   DecimalClass* result,
+                                   const DecimalClass& divisor, DecimalClass* result,
                                    DecimalClass* remainder) {
   static int64_t kDecimalArrayLength =
       std::is_same<DecimalClass, BasicDecimal128>::value ? 4 : 8;
@@ -534,8 +527,7 @@ static DecimalStatus DecimalDivide(const DecimalClass& dividend,
   dividend_array[0] = 0;
   int64_t dividend_length =
       FillInArray(dividend, dividend_array + 1, dividend_was_negative) + 1;
-  int64_t divisor_length =
-      FillInArray(divisor, divisor_array, divisor_was_negative);
+  int64_t divisor_length = FillInArray(divisor, divisor_array, divisor_was_negative);
 
   // Handle some of the easy cases.
   if (dividend_length <= divisor_length) {
@@ -549,9 +541,8 @@ static DecimalStatus DecimalDivide(const DecimalClass& dividend,
   }
 
   if (divisor_length == 1) {
-    return SingleDivide(dividend_array, dividend_length, divisor_array[0],
-                        remainder, dividend_was_negative, divisor_was_negative,
-                        result);
+    return SingleDivide(dividend_array, dividend_length, divisor_array[0], remainder,
+                        dividend_was_negative, divisor_was_negative, result);
   }
 
   int64_t result_length = dividend_length - divisor_length;
@@ -577,8 +568,8 @@ static DecimalStatus DecimalDivide(const DecimalClass& dividend,
 
     // catch all of the cases where guess is two too large and most of the
     // cases where it is one too large
-    auto rhat = static_cast<uint32_t>(
-        high_dividend - guess * static_cast<uint64_t>(divisor_array[0]));
+    auto rhat = static_cast<uint32_t>(high_dividend -
+                                      guess * static_cast<uint64_t>(divisor_array[0]));
     while (static_cast<uint64_t>(divisor_array[1]) * guess >
            (static_cast<uint64_t>(rhat) << 32) + dividend_array[j + 2]) {
       --guess;
@@ -607,8 +598,8 @@ static DecimalStatus DecimalDivide(const DecimalClass& dividend,
       --guess;
       uint32_t carry = 0;
       for (int64_t i = divisor_length - 1; i >= 0; --i) {
-        const auto sum = static_cast<uint64_t>(divisor_array[i]) +
-                         dividend_array[j + i + 1] + carry;
+        const auto sum =
+            static_cast<uint64_t>(divisor_array[i]) + dividend_array[j + i + 1] + carry;
         dividend_array[j + i + 1] = static_cast<uint32_t>(sum);
         carry = static_cast<uint32_t>(sum >> 32);
       }
@@ -631,8 +622,7 @@ static DecimalStatus DecimalDivide(const DecimalClass& dividend,
     return status;
   }
 
-  FixDivisionSigns(result, remainder, dividend_was_negative,
-                   divisor_was_negative);
+  FixDivisionSigns(result, remainder, dividend_was_negative, divisor_was_negative);
   return DecimalStatus::kSuccess;
 }
 
