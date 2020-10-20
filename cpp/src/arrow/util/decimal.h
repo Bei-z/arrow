@@ -237,11 +237,9 @@ class ARROW_EXPORT Decimal256 : public BasicDecimal256 {
   ///  -21 / -5 ->  4, -1
   /// \param[in] divisor the number to divide by
   /// \return the pair of the quotient and the remainder
-  Result<std::pair<Decimal256, Decimal256>> Divide(
-      const Decimal256& divisor) const {
+  Result<std::pair<Decimal256, Decimal256>> Divide(const Decimal256& divisor) const {
     std::pair<Decimal256, Decimal256> result;
-    auto dstatus =
-        BasicDecimal256::Divide(divisor, &result.first, &result.second);
+    auto dstatus = BasicDecimal256::Divide(divisor, &result.first, &result.second);
     ARROW_RETURN_NOT_OK(ToArrowStatus(dstatus));
     return std::move(result);
   }
