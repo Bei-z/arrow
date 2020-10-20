@@ -238,8 +238,31 @@ class ARROW_EXPORT BasicDecimal256 {
   DecimalStatus Rescale(int32_t original_scale, int32_t new_scale,
                         BasicDecimal256* out) const;
 
+<<<<<<< HEAD
   inline int64_t Sign() const {
     return 1 | (static_cast<int64_t>(little_endian_array_[3]) >> 63);
+=======
+  /// Divide this number by right and return the result.
+  ///
+  /// This operation is not destructive.
+  /// The answer rounds to zero. Signs work like:
+  ///   21 /  5 ->  4,  1
+  ///  -21 /  5 -> -4, -1
+  ///   21 / -5 -> -4,  1
+  ///  -21 / -5 ->  4, -1
+  /// \param[in] divisor the number to divide by
+  /// \param[out] result the quotient
+  /// \param[out] remainder the remainder after the division
+  DecimalStatus Divide(const BasicDecimal256& divisor, BasicDecimal256* result,
+                       BasicDecimal256* remainder) const;
+  /// \brief In-place division.
+  BasicDecimal256& operator/=(const BasicDecimal256& right);
+
+ private:
+  template <typename T>
+  inline static constexpr uint64_t extend(T low_bits) noexcept {
+    return low_bits >= T() ? uint64_t{0} : ~uint64_t{0};
+>>>>>>> 997e2502d (Add BasicDecimal256 Division Support)
   }
 
   /// \brief Multiply this number by another number. The result is truncated to 256 bits.
@@ -256,6 +279,10 @@ ARROW_EXPORT bool operator<=(const BasicDecimal256& left, const BasicDecimal256&
 ARROW_EXPORT bool operator>(const BasicDecimal256& left, const BasicDecimal256& right);
 ARROW_EXPORT bool operator>=(const BasicDecimal256& left, const BasicDecimal256& right);
 
+<<<<<<< HEAD
 ARROW_EXPORT BasicDecimal256 operator*(const BasicDecimal256& left,
+=======
+ARROW_EXPORT BasicDecimal256 operator/(const BasicDecimal256& left,
+>>>>>>> 997e2502d (Add BasicDecimal256 Division Support)
                                        const BasicDecimal256& right);
 }  // namespace arrow
