@@ -941,17 +941,16 @@ DecimalStatus BasicDecimal256::Rescale(int32_t original_scale, int32_t new_scale
   return DecimalStatus::kSuccess;
 }
 
-<<<<<<< HEAD
 BasicDecimal256 operator*(const BasicDecimal256& left, const BasicDecimal256& right) {
   BasicDecimal256 result = left;
   result *= right;
   return result;
-=======
+}
+
 DecimalStatus BasicDecimal256::Divide(const BasicDecimal256& divisor,
                                       BasicDecimal256* result,
                                       BasicDecimal256* remainder) const {
   return DecimalDivide(*this, divisor, result, remainder);
->>>>>>> 997e2502d (Add BasicDecimal256 Division Support)
 }
 
 bool operator==(const BasicDecimal256& left, const BasicDecimal256& right) {
