@@ -245,6 +245,22 @@ class ARROW_EXPORT BasicDecimal256 {
   /// \brief Multiply this number by another number. The result is truncated to 256 bits.
   BasicDecimal256& operator*=(const BasicDecimal256& right);
 
+  /// Divide this number by right and return the result.
+  ///
+  /// This operation is not destructive.
+  /// The answer rounds to zero. Signs work like:
+  ///   21 /  5 ->  4,  1
+  ///  -21 /  5 -> -4, -1
+  ///   21 / -5 -> -4,  1
+  ///  -21 / -5 ->  4, -1
+  /// \param[in] divisor the number to divide by
+  /// \param[out] result the quotient
+  /// \param[out] remainder the remainder after the division
+  DecimalStatus Divide(const BasicDecimal256& divisor, BasicDecimal256* result,
+                       BasicDecimal256* remainder) const;
+  /// \brief In-place division.
+  BasicDecimal256& operator/=(const BasicDecimal256& right);
+
  private:
   std::array<uint64_t, 4> little_endian_array_;
 };
@@ -277,5 +293,7 @@ ARROW_EXPORT inline bool operator>=(const BasicDecimal256& left,
 }
 
 ARROW_EXPORT BasicDecimal256 operator*(const BasicDecimal256& left,
+                                       const BasicDecimal256& right);
+ARROW_EXPORT BasicDecimal256 operator/(const BasicDecimal256& left,
                                        const BasicDecimal256& right);
 }  // namespace arrow
