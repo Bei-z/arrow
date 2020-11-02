@@ -405,19 +405,16 @@ template <size_t N>
 static int64_t FillInArray(std::array<uint64_t, N>& value_array, uint32_t* result_array) {
   int64_t next_index = 0;
   for (size_t i = 0; i < N; i++) {
-    if (value_array[i] == 0) {
-      if (next_index != 0) {
-        result_array[next_index++] = 0;
-        result_array[next_index++] = 0;
+    if (value_array[i] != 0) {
+      if (value_array[i] <= std::numeric_limits<uint32_t>::max()) {
+        result_array[next_index++] = static_cast<uint32_t>(value_array[i]);
+        i++;
       }
-    } else if (value_array[i] <= std::numeric_limits<uint32_t>::max()) {
-      if (next_index != 0) {
-        result_array[next_index++] = 0;
+      for (size_t j = i; j < N; j++) {
+        result_array[next_index++] = static_cast<uint32_t>(value_array[j] >> 32);
+        result_array[next_index++] = static_cast<uint32_t>(value_array[j]);
       }
-      result_array[next_index++] = static_cast<uint32_t>(value_array[i]);
-    } else {
-      result_array[next_index++] = static_cast<uint32_t>(value_array[i] >> 32);
-      result_array[next_index++] = static_cast<uint32_t>(value_array[i]);
+      break;
     }
   }
   return next_index;
@@ -433,7 +430,7 @@ static int64_t FillInArray(std::array<uint64_t, N>& value_array, uint32_t* resul
 static int64_t FillInArray(const BasicDecimal128& value, uint32_t* array,
                            bool& was_negative) {
   BasicDecimal128 abs_value = BasicDecimal128::Abs(value);
-  was_negative = value.Sign() < 0;
+  was_negative = value.high_bits() < 0;
   std::array<uint64_t, 2> abs_big_endian_array = {
       static_cast<uint64_t>(abs_value.high_bits()),
       static_cast<uint64_t>(abs_value.low_bits())};
@@ -490,8 +487,9 @@ static void ShiftArrayRight(uint32_t* array, int64_t length, int64_t bits) {
 /// \brief Fix the signs of the result and remainder at the end of the division based on
 /// the signs of the dividend and divisor.
 template <class DecimalClass>
-static void FixDivisionSigns(DecimalClass* result, DecimalClass* remainder,
-                             bool dividend_was_negative, bool divisor_was_negative) {
+static inline void FixDivisionSigns(DecimalClass* result, DecimalClass* remainder,
+                                    bool dividend_was_negative,
+                                    bool divisor_was_negative) {
   if (dividend_was_negative != divisor_was_negative) {
     result->Negate();
   }
@@ -501,7 +499,7 @@ static void FixDivisionSigns(DecimalClass* result, DecimalClass* remainder,
   }
 }
 
-/// \brief Build a big endian array of uint64_t from a list of uint32_t.
+/// \brief Build a little endian array of uint64_t from a list of uint32_t.
 template <size_t N>
 static DecimalStatus BuildFromArray(std::array<uint64_t, N>* result_array,
                                     uint32_t* array, int64_t length) {
@@ -511,7 +509,7 @@ static DecimalStatus BuildFromArray(std::array<uint64_t, N>* result_array,
     }
   }
   int64_t next_index = length - 1;
-  for (int64_t i = N - 1; i >= 0; i--) {
+  for (size_t i = 0; i < N; i++) {
     uint64_t lower_bits = (next_index < 0) ? 0 : array[next_index--];
     (*result_array)[i] =
         (next_index < 0)
@@ -529,7 +527,7 @@ static DecimalStatus BuildFromArray(BasicDecimal128* value, uint32_t* array,
   if (status != DecimalStatus::kSuccess) {
     return status;
   }
-  *value = {static_cast<int64_t>(result_array[0]), result_array[1]};
+  *value = {static_cast<int64_t>(result_array[1]), result_array[0]};
   return DecimalStatus::kSuccess;
 }
 
@@ -541,7 +539,6 @@ static DecimalStatus BuildFromArray(BasicDecimal256* value, uint32_t* array,
   if (status != DecimalStatus::kSuccess) {
     return status;
   }
-  std::reverse(result_array.begin(), result_array.end());
   *value = result_array;
   return DecimalStatus::kSuccess;
 }
@@ -575,8 +572,7 @@ template <class DecimalClass>
 static DecimalStatus DecimalDivide(const DecimalClass& dividend,
                                    const DecimalClass& divisor, DecimalClass* result,
                                    DecimalClass* remainder) {
-  static int64_t kDecimalArrayLength =
-      std::is_same<DecimalClass, BasicDecimal128>::value ? 4 : 8;
+  static constexpr int64_t kDecimalArrayLength = sizeof(DecimalClass) / sizeof(uint32_t);
   // Split the dividend and divisor into integer pieces so that we can
   // work on them.
   uint32_t dividend_array[kDecimalArrayLength + 1];
