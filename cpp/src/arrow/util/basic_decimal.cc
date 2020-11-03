@@ -475,7 +475,7 @@ static void ShiftArrayLeft(uint32_t* array, int64_t length, int64_t bits) {
 /// \param array the number to shift, must have length elements
 /// \param length the number of entries in the array
 /// \param bits the number of bits to shift (0 <= bits < 32)
-static void ShiftArrayRight(uint32_t* array, int64_t length, int64_t bits) {
+static inline void ShiftArrayRight(uint32_t* array, int64_t length, int64_t bits) {
   if (length > 0 && bits != 0) {
     for (int64_t i = length - 1; i > 0; --i) {
       array[i] = (array[i] >> bits) | (array[i - 1] << (32 - bits));
@@ -545,10 +545,12 @@ static DecimalStatus BuildFromArray(BasicDecimal256* value, uint32_t* array,
 
 /// \brief Do a division where the divisor fits into a single 32 bit value.
 template <class DecimalClass>
-static DecimalStatus SingleDivide(const uint32_t* dividend, int64_t dividend_length,
-                                  uint32_t divisor, DecimalClass* remainder,
-                                  bool dividend_was_negative, bool divisor_was_negative,
-                                  DecimalClass* result) {
+static inline DecimalStatus SingleDivide(const uint32_t* dividend,
+                                         int64_t dividend_length, uint32_t divisor,
+                                         DecimalClass* remainder,
+                                         bool dividend_was_negative,
+                                         bool divisor_was_negative,
+                                         DecimalClass* result) {
   uint64_t r = 0;
   uint32_t result_array[dividend_length];
   for (int64_t j = 0; j < dividend_length; j++) {
@@ -569,9 +571,10 @@ static DecimalStatus SingleDivide(const uint32_t* dividend, int64_t dividend_len
 
 /// \brief Do a division where the divisor fits into a single 32 bit value.
 template <class DecimalClass>
-static DecimalStatus DecimalDivide(const DecimalClass& dividend,
-                                   const DecimalClass& divisor, DecimalClass* result,
-                                   DecimalClass* remainder) {
+static inline DecimalStatus DecimalDivide(const DecimalClass& dividend,
+                                          const DecimalClass& divisor,
+                                          DecimalClass* result, DecimalClass* remainder) {
+  constexpr int64_t kDecimalArrayLength = sizeof(DecimalClass) / sizeof(uint32_t);
   // Split the dividend and divisor into integer pieces so that we can
   // work on them.
   uint32_t dividend_array[kDecimalArrayLength + 1];
