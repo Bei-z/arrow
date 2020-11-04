@@ -431,10 +431,36 @@ static int64_t FillInArray(const BasicDecimal128& value, uint32_t* array,
                            bool& was_negative) {
   BasicDecimal128 abs_value = BasicDecimal128::Abs(value);
   was_negative = value.high_bits() < 0;
-  std::array<uint64_t, 2> abs_big_endian_array = {
-      static_cast<uint64_t>(abs_value.high_bits()),
-      static_cast<uint64_t>(abs_value.low_bits())};
-  return FillInArray(abs_big_endian_array, array);
+  uint64_t high = static_cast<uint64_t>(abs_value.high_bits());
+  uint64_t low = abs_value.low_bits();
+
+  if (high != 0) {
+    if (high > std::numeric_limits<uint32_t>::max()) {
+      array[0] = static_cast<uint32_t>(high >> 32);
+      array[1] = static_cast<uint32_t>(high);
+      array[2] = static_cast<uint32_t>(low >> 32);
+      array[3] = static_cast<uint32_t>(low);
+      return 4;
+    }
+
+    array[0] = static_cast<uint32_t>(high);
+    array[1] = static_cast<uint32_t>(low >> 32);
+    array[2] = static_cast<uint32_t>(low);
+    return 3;
+  }
+
+  if (low >= std::numeric_limits<uint32_t>::max()) {
+    array[0] = static_cast<uint32_t>(low >> 32);
+    array[1] = static_cast<uint32_t>(low);
+    return 2;
+  }
+
+  if (low == 0) {
+    return 0;
+  }
+
+  array[0] = static_cast<uint32_t>(low);
+  return 1;
 }
 
 /// Expands the given value into an array of ints so that we can work on
