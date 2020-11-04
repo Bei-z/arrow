@@ -527,7 +527,7 @@ static inline void FixDivisionSigns(DecimalClass* result, DecimalClass* remainde
   }
 }
 
-/// \brief Build a little endian array of uint64_t from a list of uint32_t.
+/// \brief Build a little endian array of uint64_t from a big endian array of uint32_t.
 template <size_t N>
 static DecimalStatus BuildFromArray(std::array<uint64_t, N>* result_array,
                                     uint32_t* array, int64_t length) {
@@ -547,7 +547,7 @@ static DecimalStatus BuildFromArray(std::array<uint64_t, N>* result_array,
   return DecimalStatus::kSuccess;
 }
 
-/// \brief Build a BasicDecimal128 from a list of uint32_t.
+/// \brief Build a BasicDecimal128 from a big endian array of uint32_t.
 static DecimalStatus BuildFromArray(BasicDecimal128* value, uint32_t* array,
                                     int64_t length) {
   std::array<uint64_t, 2> result_array;
@@ -559,7 +559,7 @@ static DecimalStatus BuildFromArray(BasicDecimal128* value, uint32_t* array,
   return DecimalStatus::kSuccess;
 }
 
-/// \brief Build a BasicDecimal256 from a list of uint32_t.
+/// \brief Build a BasicDecimal256 from a big endian array of uint32_t.
 static DecimalStatus BuildFromArray(BasicDecimal256* value, uint32_t* array,
                                     int64_t length) {
   std::array<uint64_t, 4> result_array;
