@@ -395,22 +395,22 @@ BasicDecimal128& BasicDecimal128::operator*=(const BasicDecimal128& right) {
   return *this;
 }
 
-/// Expands the given big endian array of uint64_t into an array of uint32_t.
-/// The value of input array is expected to be positive. The result_array will
-/// remove leading zeros from the input array.
-/// \param value_array an big endian array to represent the value
-/// \param result_array an array of length N*2 to set with the value
-/// \result the output length of the array
+/// Expands the given little endian array of uint64_t into an big endian array of
+/// uint32_t. The value of input array is expected to be non-negative. The result_array
+/// will remove leading zeros from the input array. \param value_array an big endian array
+/// to represent the value \param result_array an array of length N*2 to set with the
+/// value \result the output length of the array
 template <size_t N>
-static int64_t FillInArray(std::array<uint64_t, N>& value_array, uint32_t* result_array) {
+static int64_t FillInArray(const std::array<uint64_t, N>& value_array,
+                           uint32_t* result_array) {
   int64_t next_index = 0;
-  for (size_t i = 0; i < N; i++) {
+  for (int64_t i = N - 1; i >= 0; i--) {
     if (value_array[i] != 0) {
       if (value_array[i] <= std::numeric_limits<uint32_t>::max()) {
         result_array[next_index++] = static_cast<uint32_t>(value_array[i]);
-        i++;
+        i--;
       }
-      for (size_t j = i; j < N; j++) {
+      for (int64_t j = i; j >= 0; j--) {
         result_array[next_index++] = static_cast<uint32_t>(value_array[j] >> 32);
         result_array[next_index++] = static_cast<uint32_t>(value_array[j]);
       }
@@ -420,8 +420,8 @@ static int64_t FillInArray(std::array<uint64_t, N>& value_array, uint32_t* resul
   return next_index;
 }
 
-/// Expands the given value into an array of ints so that we can work on
-/// it. The array will be converted to an absolute value and the wasNegative
+/// Expands the given value into a big endian array of ints so that we can work on
+/// it. The array will be converted to an absolute value and the was_negative
 /// flag will be set appropriately. The array will remove leading zeros from
 /// the value.
 /// \param array an array of length 4 to set with the value
@@ -434,6 +434,9 @@ static int64_t FillInArray(const BasicDecimal128& value, uint32_t* array,
   uint64_t high = static_cast<uint64_t>(abs_value.high_bits());
   uint64_t low = abs_value.low_bits();
 
+  // FillInArray(std::array<uint64_t, N>& value_array, uint32_t* result_array) is not
+  // called here as the following code has better performance, to avoid regression on
+  // BasicDecimal128 Division.
   if (high != 0) {
     if (high > std::numeric_limits<uint32_t>::max()) {
       array[0] = static_cast<uint32_t>(high >> 32);
@@ -463,8 +466,8 @@ static int64_t FillInArray(const BasicDecimal128& value, uint32_t* array,
   return 1;
 }
 
-/// Expands the given value into an array of ints so that we can work on
-/// it. The array will be converted to an absolute value and the wasNegative
+/// Expands the given value into a big endian array of ints so that we can work on
+/// it. The array will be converted to an absolute value and the was_negative
 /// flag will be set appropriately. The array will remove leading zeros from
 /// the value.
 /// \param array an array of length 8 to set with the value
@@ -479,9 +482,7 @@ static int64_t FillInArray(const BasicDecimal256& value, uint32_t* array,
     positive_value.Negate();
     was_negative = true;
   }
-  std::array<uint64_t, 4> value_big_endian_array = positive_value.little_endian_array();
-  std::reverse(value_big_endian_array.begin(), value_big_endian_array.end());
-  return FillInArray(value_big_endian_array, array);
+  return FillInArray<4>(positive_value.little_endian_array(), array);
 }
 
 /// Shift the number in the array left by bits positions.
