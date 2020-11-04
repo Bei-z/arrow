@@ -395,11 +395,12 @@ BasicDecimal128& BasicDecimal128::operator*=(const BasicDecimal128& right) {
   return *this;
 }
 
-/// Expands the given little endian array of uint64_t into an big endian array of
+/// Expands the given little endian array of uint64_t into a big endian array of
 /// uint32_t. The value of input array is expected to be non-negative. The result_array
-/// will remove leading zeros from the input array. \param value_array an big endian array
-/// to represent the value \param result_array an array of length N*2 to set with the
-/// value \result the output length of the array
+/// will remove leading zeros from the input array.
+/// \param value_array a little endian array to represent the value
+/// \param result_array a big endian array of length N*2 to set with the value
+/// \result the output length of the array
 template <size_t N>
 static int64_t FillInArray(const std::array<uint64_t, N>& value_array,
                            uint32_t* result_array) {
@@ -424,7 +425,7 @@ static int64_t FillInArray(const std::array<uint64_t, N>& value_array,
 /// it. The array will be converted to an absolute value and the was_negative
 /// flag will be set appropriately. The array will remove leading zeros from
 /// the value.
-/// \param array an array of length 4 to set with the value
+/// \param array a big endian array of length 4 to set with the value
 /// \param was_negative a flag for whether the value was original negative
 /// \result the output length of the array
 static int64_t FillInArray(const BasicDecimal128& value, uint32_t* array,
@@ -470,7 +471,7 @@ static int64_t FillInArray(const BasicDecimal128& value, uint32_t* array,
 /// it. The array will be converted to an absolute value and the was_negative
 /// flag will be set appropriately. The array will remove leading zeros from
 /// the value.
-/// \param array an array of length 8 to set with the value
+/// \param array a big endian array of length 8 to set with the value
 /// \param was_negative a flag for whether the value was original negative
 /// \result the output length of the array
 static int64_t FillInArray(const BasicDecimal256& value, uint32_t* array,
