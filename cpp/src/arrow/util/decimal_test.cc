@@ -40,6 +40,9 @@ namespace arrow {
 using internal::int128_t;
 using internal::uint128_t;
 
+constexpr int128_t kInt128Max = (static_cast<int128_t>(INT64_MAX) << 64) - 1 +
+                                2 * (static_cast<int128_t>(INT64_MAX) + 1);
+
 class DecimalTestFixture : public ::testing::Test {
  public:
   DecimalTestFixture() : integer_value_(23423445), string_value_("234.23445") {}
@@ -1334,7 +1337,9 @@ TEST(Decimal256Test, Divide) {
   }
 
   // Test some edge cases
-  for (auto x : std::vector<int128_t>{-INT64_MAX, -INT32_MAX, 0, INT32_MAX, INT64_MAX}) {
+  for (auto x :
+       std::vector<int128_t>{-kInt128Max, -INT64_MAX - 1, -INT64_MAX, -INT32_MAX - 1,
+                             -INT32_MAX, 0, INT32_MAX, INT64_MAX, kInt128Max}) {
     for (auto y : std::vector<int128_t>{-INT32_MAX, -32, -2, -1, 1, 2, 32, INT32_MAX}) {
       Decimal256 decimal_x = Decimal256FromInt128(x);
       Decimal256 decimal_y = Decimal256FromInt128(y);
