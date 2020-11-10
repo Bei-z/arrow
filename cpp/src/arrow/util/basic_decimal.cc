@@ -405,18 +405,21 @@ template <size_t N>
 static int64_t FillInArray(const std::array<uint64_t, N>& value_array,
                            uint32_t* result_array) {
   int64_t next_index = 0;
-  for (int64_t i = N - 1; i >= 0; i--) {
+  // 1st loop to find out 1st non-negative value in input
+  int64_t i = N - 1;
+  for (; i >= 0; i--) {
     if (value_array[i] != 0) {
       if (value_array[i] <= std::numeric_limits<uint32_t>::max()) {
         result_array[next_index++] = static_cast<uint32_t>(value_array[i]);
         i--;
       }
-      for (int64_t j = i; j >= 0; j--) {
-        result_array[next_index++] = static_cast<uint32_t>(value_array[j] >> 32);
-        result_array[next_index++] = static_cast<uint32_t>(value_array[j]);
-      }
       break;
     }
+  }
+  // 2nd loop to fill in the rest of the array.
+  for (int64_t j = i; j >= 0; j--) {
+    result_array[next_index++] = static_cast<uint32_t>(value_array[j] >> 32);
+    result_array[next_index++] = static_cast<uint32_t>(value_array[j]);
   }
   return next_index;
 }
@@ -530,25 +533,29 @@ static inline void FixDivisionSigns(DecimalClass* result, DecimalClass* remainde
 /// \brief Build a little endian array of uint64_t from a big endian array of uint32_t.
 template <size_t N>
 static DecimalStatus BuildFromArray(std::array<uint64_t, N>* result_array,
-                                    uint32_t* array, int64_t length) {
+                                    const uint32_t* array, int64_t length) {
   for (int64_t i = length - 2 * N - 1; i >= 0; i--) {
     if (array[i] != 0) {
       return DecimalStatus::kOverflow;
     }
   }
   int64_t next_index = length - 1;
-  for (size_t i = 0; i < N; i++) {
-    uint64_t lower_bits = (next_index < 0) ? 0 : array[next_index--];
-    (*result_array)[i] =
+  size_t i = 0;
+  while (next_index >= 0) {
+    uint64_t lower_bits = array[next_index--];
+    (*result_array)[i++] =
         (next_index < 0)
             ? lower_bits
             : ((static_cast<uint64_t>(array[next_index--]) << 32) + lower_bits);
+  }
+  for (; i < N; i++) {
+    (*result_array)[i] = 0;
   }
   return DecimalStatus::kSuccess;
 }
 
 /// \brief Build a BasicDecimal128 from a big endian array of uint32_t.
-static DecimalStatus BuildFromArray(BasicDecimal128* value, uint32_t* array,
+static DecimalStatus BuildFromArray(BasicDecimal128* value, const uint32_t* array,
                                     int64_t length) {
   std::array<uint64_t, 2> result_array;
   auto status = BuildFromArray(&result_array, array, length);
@@ -560,7 +567,7 @@ static DecimalStatus BuildFromArray(BasicDecimal128* value, uint32_t* array,
 }
 
 /// \brief Build a BasicDecimal256 from a big endian array of uint32_t.
-static DecimalStatus BuildFromArray(BasicDecimal256* value, uint32_t* array,
+static DecimalStatus BuildFromArray(BasicDecimal256* value, const uint32_t* array,
                                     int64_t length) {
   std::array<uint64_t, 4> result_array;
   auto status = BuildFromArray(&result_array, array, length);
