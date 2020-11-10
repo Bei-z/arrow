@@ -242,6 +242,10 @@ class ARROW_EXPORT BasicDecimal256 {
     return 1 | (static_cast<int64_t>(little_endian_array_[3]) >> 63);
   }
 
+  inline int64_t IsNegative() const {
+    return static_cast<int64_t>(little_endian_array_[3]) < 0;
+  }
+
   /// \brief Multiply this number by another number. The result is truncated to 256 bits.
   BasicDecimal256& operator*=(const BasicDecimal256& right);
 
