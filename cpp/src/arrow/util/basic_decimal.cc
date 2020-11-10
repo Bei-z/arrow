@@ -481,8 +481,7 @@ static int64_t FillInArray(const BasicDecimal256& value, uint32_t* array,
                            bool& was_negative) {
   BasicDecimal256 positive_value = value;
   was_negative = false;
-  int64_t highest_bit = positive_value.little_endian_array()[3];
-  if (highest_bit < 0) {
+  if (positive_value.IsNegative()) {
     positive_value.Negate();
     was_negative = true;
   }
