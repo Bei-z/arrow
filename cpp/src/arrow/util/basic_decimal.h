@@ -42,6 +42,8 @@ enum class DecimalStatus {
 /// streams and boost.
 class ARROW_EXPORT BasicDecimal128 {
  public:
+  static constexpr int bit_width = 128;
+
   /// \brief Create a BasicDecimal128 from the two's complement representation.
   constexpr BasicDecimal128(int64_t high, uint64_t low) noexcept
       : low_bits_(low), high_bits_(high) {}
@@ -188,6 +190,8 @@ class ARROW_EXPORT BasicDecimal256 {
   }
 
  public:
+  static constexpr int bit_width = 256;
+
   /// \brief Create a BasicDecimal256 from the two's complement representation.
   constexpr BasicDecimal256(const std::array<uint64_t, 4>& little_endian_array) noexcept
       : little_endian_array_(little_endian_array) {}
