@@ -19,7 +19,6 @@
 
 #include <algorithm>
 #include <array>
-#include <bit>
 #include <climits>
 #include <cstdint>
 #include <cstdlib>
