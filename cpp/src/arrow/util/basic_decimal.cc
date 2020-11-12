@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <climits>
 #include <cstdint>
 #include <cstdlib>
@@ -456,7 +457,7 @@ static int64_t FillInArray(const BasicDecimal128& value, uint32_t* array,
     return 3;
   }
 
-  if (low >= std::numeric_limits<uint32_t>::max()) {
+  if (low > std::numeric_limits<uint32_t>::max()) {
     array[0] = static_cast<uint32_t>(low >> 32);
     array[1] = static_cast<uint32_t>(low);
     return 2;
@@ -603,12 +604,12 @@ static inline DecimalStatus SingleDivide(const uint32_t* dividend,
   return DecimalStatus::kSuccess;
 }
 
-/// \brief Do a division where the divisor fits into a single 32 bit value.
+/// \brief Do a decimal division with remainder.
 template <class DecimalClass>
 static inline DecimalStatus DecimalDivide(const DecimalClass& dividend,
                                           const DecimalClass& divisor,
                                           DecimalClass* result, DecimalClass* remainder) {
-  constexpr int64_t kDecimalArrayLength = sizeof(DecimalClass) / sizeof(uint32_t);
+  constexpr int64_t kDecimalArrayLength = DecimalClass::bit_width / sizeof(uint32_t);
   // Split the dividend and divisor into integer pieces so that we can
   // work on them.
   uint32_t dividend_array[kDecimalArrayLength + 1];
