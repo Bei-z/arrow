@@ -40,7 +40,7 @@ namespace arrow {
 using internal::int128_t;
 using internal::uint128_t;
 
-constexpr int128_t kInt128Max =
+static const int128_t kInt128Max =
     (static_cast<int128_t>(INT64_MAX) << 64) + static_cast<int128_t>(UINT64_MAX);
 
 class DecimalTestFixture : public ::testing::Test {
