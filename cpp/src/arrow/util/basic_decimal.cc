@@ -540,9 +540,9 @@ static DecimalStatus BuildFromArray(std::array<uint64_t, N>* result_array,
   }
   int64_t next_index = length - 1;
   size_t i = 0;
-  while (next_index >= 0) {
+  for (; i < N && next_index >= 0; i++) {
     uint64_t lower_bits = array[next_index--];
-    (*result_array)[i++] =
+    (*result_array)[i] =
         (next_index < 0)
             ? lower_bits
             : ((static_cast<uint64_t>(array[next_index--]) << 32) + lower_bits);
