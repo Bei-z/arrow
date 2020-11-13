@@ -600,6 +600,7 @@ static inline DecimalStatus SingleDivide(const uint32_t* dividend,
 
   *remainder = static_cast<int64_t>(r);
   FixDivisionSigns(result, remainder, dividend_was_negative, divisor_was_negative);
+  delete[] result_array;
   return DecimalStatus::kSuccess;
 }
 
