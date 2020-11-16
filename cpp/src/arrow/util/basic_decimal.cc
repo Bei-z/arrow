@@ -586,7 +586,7 @@ static inline DecimalStatus SingleDivide(const uint32_t* dividend,
                                          bool divisor_was_negative,
                                          DecimalClass* result) {
   uint64_t r = 0;
-  uint32_t* result_array = new uint32_t[dividend_length];
+  uint32_t result_array[dividend_length];
   for (int64_t j = 0; j < dividend_length; j++) {
     r <<= 32;
     r += dividend[j];
@@ -600,7 +600,6 @@ static inline DecimalStatus SingleDivide(const uint32_t* dividend,
 
   *remainder = static_cast<int64_t>(r);
   FixDivisionSigns(result, remainder, dividend_was_negative, divisor_was_negative);
-  delete[] result_array;
   return DecimalStatus::kSuccess;
 }
 
